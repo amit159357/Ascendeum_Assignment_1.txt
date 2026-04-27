@@ -1,0 +1,125 @@
+Answer 1
+
+The group by was fetching error in achieving the same and hence I went ahead with the window functions approach.
+
+
+select dept_name , age
+from (
+select d.name as dept_name, avg(age) over(partition by d.name) as age, row_number() over(partition by d.name) as r
+from departments d
+join employees e
+on e.department_id = d.id
+) r_1
+where r = 1
+
+
+
+Output:
+
+180 ms
++------------+---------+
+| dept_name  | age     |
++------------+---------+
+| Finance    | 41.4500 |
+| HR         | 38.4000 |
+| IT         | 37.5500 |
+| Marketing  | 41.4000 |
+| Operations | 38.5500 |
++------------+---------+
+
+
+
+
+
+ANswer 2
+
+
+
+select d.name as dept_name, count(*) as total_emp
+from departments d
+join employees e
+on e.department_id = d.id
+and age > 40
+group by dept_name
+order by count(*) desc
+limit 1
+
+
+
+Output:
+
+177 ms
++------------+----------+
+| dept_name  | count(*) |
++------------+----------+
+| Operations |      101 |
++------------+----------+
+
+
+
+
+
+Answer 3 ==> THis can also be solved with interval function.
+
+
+select count(*) as emp_joined_in_last_100_Days
+ from employees
+where  datediff(current_date, joining_Date)  <= 100
+
+Output:
+
+143 ms
++-----------------------------+
+| emp_joined_in_last_100_Days |
++-----------------------------+
+|                         100 |
++-----------------------------+
+
+
+
+
+Answer 4 ==> the dynamic value of yesterday can also be find by interval function, as of now i have used the static date which obviously is not a legit choice at 1st.
+
+Other_way ==> This is achievable by curren_date - 1, but the date has to be casted again in the date format.
+
+update employees
+set joining_date = "2026-01-25" 
+where id in (
+select * from (
+select e.id as id
+from employees e
+join departments d
+on e.department_id = d.id
+and d.name = 'HR'
+) table_1
+)
+
+
+
+Answer 5 ==>
+
+
+update employees
+set joining_date = "2026-01-25" 
+where id in (
+select * from (
+select e.id as id
+from employees e
+join departments d
+on e.department_id = d.id
+and d.name = 'HR'
+) table_1
+);
+
+
+select count(*) as emp_joined_in_last_100_Days
+ from employees
+where  datediff(current_date, joining_Date)  <= 100
+Output:
+
+169 ms
++-----------------------------+
+| emp_joined_in_last_100_Days |
++-----------------------------+
+|                         280 |
++-----------------------------+
