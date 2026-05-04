@@ -1,0 +1,24 @@
+SELECT 
+    date,
+    resource_id,
+    MAX(CASE 
+        WHEN is_clock_in = 1 
+        THEN start_time 
+    END) AS clock_in_time,
+
+    MAX(CASE 
+        WHEN is_clock_out = 1 
+        THEN end_time 
+    END) AS clock_out_time,
+
+    ROUND(
+        SUM(
+            strftime('%s', end_time) - strftime('%s', start_time)
+        ) / 3600.0, 
+    2) AS total_hours
+
+FROM test_de
+GROUP BY date, resource_id;
+
+
+
